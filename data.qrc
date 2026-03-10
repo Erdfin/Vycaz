@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/default">
+        <file>data/machines.json</file>
+        <file>data/defaultthemes.json</file>
+        <file>data/settings.json</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,23 @@
+{
+  "machines": [
+    {
+    "id": "node",
+    "name": "Crushing Wheel",
+    "icon": "",
+    "type": "create:crushing",
+    "inputs": 1,
+    "outputs": 1,
+    "kinetic stress": 8
+    },
+    {
+    "id": "topic",
+    "name": "Mechanical Press",
+    "icon": "",
+    "type": "|create:pressing|create:compacting",
+    "inputs": 0,
+    "outputs": 1,
+    "kinetic stress": 8
+    }
+  ]
+}
+

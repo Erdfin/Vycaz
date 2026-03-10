@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/Spout.png</file>
+        <file>assets/Mechanical_Saw.png</file>
+        <file>assets/Mechanical_Press.png</file>
+        <file>assets/Mechanical_Mixer.png</file>
+        <file>assets/Mechanical_Drill.png</file>
+        <file>assets/Encased_Fan.png</file>
+        <file>assets/Crushing_Wheel.png</file>
+        <file>data/machines.json</file>
+        <file>assets/Millstone.png</file>
+        <file>assets/Source.png</file>
+        <file>assets/Sink.png</file>
+        <file>assets/Deployer.png</file>
+        <file>assets/andesite_casing.png</file>
+    </qresource>
+</RCC>
