@@ -612,7 +612,7 @@ void MainWindow::loadProject(const QString& filePath)
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
-    setWindowTitle("Qt MQTT Conceptual Drawer");
+    setWindowTitle("Vycaz");
 
     preferences = getDefaultPreferences();
     themes["Default"] = getDefaultPreferences();
@@ -735,8 +735,8 @@ void MainWindow::showAboutDialog()
 {
     QMessageBox::about(
         this,
-        "About Qt MQTT Conceptual Drawer",
-        QString("<b>Qt MQTT Conceptual Drawer</b><br>"
+        "About Vycaz",
+        QString("<b>Vycaz</b><br>"
         "Version %1 <br><br>"
         "A graphical tool for manually drawing graphs<br><br>"
         "Built using the Qt 6.10.2 framework.").arg(APP_VERSION)

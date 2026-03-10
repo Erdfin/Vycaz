@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(QtContraptionPlanner VERSION 0.1 LANGUAGES CXX)
+project(Vycaz VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Svg OpenGLWidgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Svg OpenGLWidgets)
 
-set(TS_FILES QtContraptionPlanner_en_US.ts)
+set(TS_FILES Vycaz_en_US.ts)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -22,7 +22,7 @@ set(PROJECT_SOURCES
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(QtContraptionPlanner
+    qt_add_executable(Vycaz
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         graphicsview.h graphicsview.cpp
@@ -52,20 +52,20 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
     )
 # Define target properties for Android with Qt 6 as:
-#    set_property(TARGET QtContraptionPlanner APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+#    set_property(TARGET Vycaz APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
     if(ANDROID)
-        add_library(QtContraptionPlanner SHARED
+        add_library(Vycaz SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(QtContraptionPlanner
+        add_executable(Vycaz
             ${PROJECT_SOURCES}
         )
     endif()
@@ -73,17 +73,17 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_include_directories(QtContraptionPlanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(Vycaz PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(QtContraptionPlanner PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Svg Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
+target_link_libraries(Vycaz PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Svg Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.QtContraptionPlanner)
+  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.Vycaz)
 endif()
-set_target_properties(QtContraptionPlanner PROPERTIES
+set_target_properties(Vycaz PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -92,12 +92,12 @@ set_target_properties(QtContraptionPlanner PROPERTIES
 )
 
 include(GNUInstallDirs)
-install(TARGETS QtContraptionPlanner
+install(TARGETS Vycaz
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(QtContraptionPlanner)
+    qt_finalize_executable(Vycaz)
 endif()
