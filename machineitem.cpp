@@ -1,8 +1,14 @@
 #include "machineitem.h"
 #include "portitem.h"
 #include "connectionitem.h"
+#include "microtexruntime.h"
+
+#include "core/formula.h"
+#include "latex.h"
+#include "platform/qt/graphic_qt.h"
 
 #include <QPainter>
+#include <QFontInfo>
 #include <QFileInfo>
 #include <QMenu>
 #include <QAction>
@@ -15,6 +21,14 @@
 #include <QTextCursor>
 
 static qreal snap(qreal val, qreal grid) { return qRound(val / grid) * grid; }
+
+static tex::color toTexColor(const QColor& color)
+{
+    return (tex::color(color.alpha()) << 24)
+         | (tex::color(color.red()) << 16)
+         | (tex::color(color.green()) << 8)
+         | tex::color(color.blue());
+}
 
 MachineItem::MachineItem(const Prefs *prefs, const MachineDefinition& def)
     : definition(def)
@@ -31,6 +45,7 @@ MachineItem::MachineItem(const Prefs *prefs, const MachineDefinition& def)
 
     createPorts();
     updateOrientation();
+    rebuildLabelRender();
 }
 
 MachineItem::MachineItem(const Prefs *prefs, const MachineItem& temp)
@@ -53,6 +68,12 @@ MachineItem::MachineItem(const Prefs *prefs, const MachineItem& temp)
         addPort(*pi->getDefinition(), "");
     }
     updateOrientation();
+    rebuildLabelRender();
+}
+
+MachineItem::~MachineItem()
+{
+    delete labelRender;
 }
 
 QRectF MachineItem::boundingRect() const
@@ -87,10 +108,26 @@ void MachineItem::paint(QPainter* painter,
         QRectF iconRect(20, 20, size.width() - 40, size.height() - 40);
         painter->drawPixmap(iconRect, icon, icon.rect());
     } else if (!textEditor) {
-        painter->setPen(QPen(prefs->fontColor));
-        painter->setFont(prefs->font);
-        QRectF labelRect(8, 8, size.width() - 16, size.height() - 16);
-        painter->drawText(labelRect, Qt::AlignCenter | Qt::TextWordWrap, label);
+        if (labelRenderDirty) {
+            rebuildLabelRender();
+        }
+
+        if (labelIsLatex() && labelRender != nullptr) {
+            // MicroTeX's Qt backend resets the painter transform at the end of
+            // a render. QGraphicsView here uses DontSavePainterState, so keep
+            // our own save/restore around the formula.
+            painter->save();
+            const int x = qRound((size.width() - labelRender->getWidth()) / 2.0);
+            const int y = qRound((size.height() - labelRender->getHeight()) / 2.0);
+            tex::Graphics2D_qt graphics(painter);
+            labelRender->draw(graphics, x, y);
+            painter->restore();
+        } else {
+            painter->setPen(QPen(prefs->fontColor));
+            painter->setFont(prefs->font);
+            QRectF labelRect(8, 8, size.width() - 16, size.height() - 16);
+            painter->drawText(labelRect, Qt::AlignCenter | Qt::TextWordWrap, label);
+        }
     }
 
     if (isSelected()) {
@@ -353,6 +390,69 @@ void MachineItem::setSize(QSizeF new_size)
     prepareGeometryChange();
     size = new_size;
     updateOrientation();
+    labelRenderDirty = true;
+}
+
+bool MachineItem::labelIsLatex() const
+{
+    return label.size() >= 2
+        && label.startsWith(QLatin1Char('$'))
+        && label.endsWith(QLatin1Char('$'));
+}
+
+void MachineItem::setLabel(const QString& text)
+{
+    label = text;
+    labelRenderDirty = true;
+    update();
+}
+
+void MachineItem::rebuildLabelRender()
+{
+    labelRenderDirty = false;
+    delete labelRender;
+    labelRender = nullptr;
+
+    if (!labelIsLatex() || size.width() <= 32.0 || !ensureMicroTeXInitialized()) {
+        return;
+    }
+
+    const QString source = label.mid(1, label.size() - 2);
+    if (source.trimmed().isEmpty()) {
+        return;
+    }
+
+    // MicroTeX sizes are in pixels-per-em, not Qt points. Matching points to
+    // pixels makes formulas ~25% too small (72 vs 96 DPI). Use the font's
+    // actual pixel size so math lines up with the normal label text.
+    qreal textSize = QFontInfo(prefs->font).pixelSize();
+    if (textSize <= 0.0) {
+        textSize = prefs->font.pointSizeF() * 4.0 / 3.0;
+    }
+    if (textSize <= 0.0) {
+        textSize = 18.0;
+    }
+    textSize *= 1.35;
+    textSize = qBound(10.0, textSize, 64.0);
+
+    try {
+        tex::Formula formula(source.toStdWString());
+        tex::TeXRenderBuilder builder;
+        labelRender = builder
+            .setStyle(tex::TexStyle::display)
+            .setTextSize(static_cast<float>(textSize))
+            .setType(tex::TeXRenderBuilder::BOLD)
+            .setWidth(tex::UnitType::pixel,
+                      qMax(20, static_cast<int>(size.width() - 16.0)),
+                      tex::Alignment::left)
+            .setIsMaxWidth(true)
+            .setLineSpace(tex::UnitType::pixel,
+                          static_cast<float>(textSize * 0.35))
+            .setForeground(toTexColor(prefs->fontColor))
+            .build(formula);
+    } catch (...) {
+        labelRender = nullptr;
+    }
 }
 
 void MachineItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
@@ -424,6 +524,7 @@ void MachineItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
             connect(textEditor->document(), &QTextDocument::contentsChanged,
                     this, [this]() {
                         label = textEditor->toPlainText();
+                        labelRenderDirty = true;
                         // Center it within the body as text it's being changed
                         QRectF tb = textEditor->boundingRect();
                         textEditor->setPos(textEditorPos(tb));
@@ -449,6 +550,7 @@ bool MachineItem::eventFilter(QObject* obj, QEvent* e)
 {
     if (obj == textEditor && e->type() == QEvent::FocusOut) {
         label = textEditor->toPlainText();
+        labelRenderDirty = true;
         textEditor->deleteLater();
         textEditor = nullptr;
         update();

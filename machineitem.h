@@ -11,6 +11,10 @@
 
 class PortItem;
 
+namespace tex {
+class TeXRender;
+}
+
 class MachineItem : public QGraphicsObject
 {
     Q_OBJECT
@@ -18,6 +22,7 @@ class MachineItem : public QGraphicsObject
 public:
     explicit MachineItem(const Prefs *prefs, const MachineDefinition& def);
     explicit MachineItem(const Prefs *prefs, const MachineItem& temp);
+    ~MachineItem() override;
 
     enum { Type = QGraphicsObject::UserType + 1 };
     int type() const override { return Type; }
@@ -53,13 +58,16 @@ public:
     void addPort(PortDefinition def, QString id = "");
     void clearPorts();
 
-    void setLabel(const QString& text) { label = text; update(); }
+    void setLabel(const QString& text);
     const QString& getLabel() const { return label; }
+
+    bool labelIsLatex() const;
 
     const Prefs *prefs;
 
 private:
     void createPorts();
+    void rebuildLabelRender();
 
     // Which resize handle (edge/corner) is being dragged
     enum class ResizeHandle {
@@ -86,6 +94,8 @@ protected:
     QString label = "Label";
     QPixmap icon;
     QSizeF size;
+    tex::TeXRender* labelRender = nullptr;
+    bool labelRenderDirty = true;
 
     virtual QPointF textEditorPos(QRectF tb);
 
