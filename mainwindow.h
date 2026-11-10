@@ -26,6 +26,7 @@ public:
 
 private slots:
     QGraphicsItem* spawnMachine(const QString& machineId, QPointF scenePos);
+    MachineItem* spawnMachineItemDuplicate(MachineItem* temp);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

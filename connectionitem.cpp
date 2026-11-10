@@ -88,8 +88,25 @@ static QPointF safeNormalize(const QPointF& v)
 
 void ConnectionItem::updatePath()
 {
-    if (!src)
-        return;
+    if (!src) return;
+
+    bool srcMoved = true;
+    if (sPos == nullptr) {
+        sPos = new QPointF(src->centerPos());
+    } else {
+        if (*sPos == src->centerPos()) srcMoved = false;
+    }
+
+    bool dstMoved = true;
+    if (dst != nullptr) {
+        if (dPos == nullptr) {
+            dPos = new QPointF(dst->centerPos());
+        } else {
+            if (*dPos == dst->centerPos()) dstMoved = false;
+        }
+    }
+
+    if (!(srcMoved || dstMoved || updateArrows)) return;
 
     QPen pen(src->getParentMachine()->prefs->connectionColor);
     pen.setWidthF(20.0);
@@ -141,43 +158,42 @@ void ConnectionItem::updatePath()
         c2 = entryPoint + dstDir * handle;
     }
 
-    QPainterPath path(p1);
-    path.lineTo(exitPoint);
+    connPath = QPainterPath(p1);
+    connPath.lineTo(exitPoint);
 
     if (dst) {
-        path.cubicTo(c1, c2, entryPoint);
-        path.lineTo(p3);
+        connPath.cubicTo(c1, c2, entryPoint);
+        connPath.lineTo(p3);
     } else {
-        path.cubicTo(c1, c2, p3);
+        connPath.cubicTo(c1, c2, p3);
     }
 
     qreal newArrowSpacing = src->getParentMachine()->prefs->arrowSpacing;
 
-    if (path.length() <= newArrowSpacing) {
-        path = QPainterPath(p1);
-        path.quadTo(c1, p3);
+    if (connPath.length() <= newArrowSpacing) {
+        connPath = QPainterPath(p1);
+        connPath.quadTo(c1, p3);
     }
 
-    setPath(path);
+    setPath(connPath);
 
-    if (updateArrows || path.length() != length) {
-        cachedArrows.clear();
-        length = path.length();
-        if (length <= 0) return;
+    cachedArrows.clear();
+    length = connPath.length();
+    if (length <= 0) return;
 
-        if (length <= 2 * newArrowSpacing) {
-            qreal t = path.percentAtLength(length / 2);
-            cachedArrows.append({ path.pointAtPercent(t), path.angleAtPercent(t) });
-        } else {
-            const int arrowCount = static_cast<int>(length / newArrowSpacing);
-            const qreal distSpacing = length / (arrowCount + 1);
-            for (int i = 1; i <= arrowCount; ++i) {
-                qreal t = path.percentAtLength(i * distSpacing);
-                cachedArrows.append({ path.pointAtPercent(t), path.angleAtPercent(t) });
-            }
+    if (length <= 2 * newArrowSpacing) {
+        qreal t = connPath.percentAtLength(length / 2);
+        cachedArrows.append({ connPath.pointAtPercent(t), connPath.angleAtPercent(t) });
+    } else {
+        const int arrowCount = static_cast<int>(length / newArrowSpacing);
+        const qreal distSpacing = length / (arrowCount + 1);
+        for (int i = 1; i <= arrowCount; ++i) {
+            qreal t = connPath.percentAtLength(i * distSpacing);
+            cachedArrows.append({ connPath.pointAtPercent(t), connPath.angleAtPercent(t) });
         }
-        updateArrows = false;
     }
+
+    updateArrows = false;
 }
 
 void ConnectionItem::paint(QPainter* painter,

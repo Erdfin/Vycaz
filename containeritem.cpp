@@ -48,7 +48,7 @@ void ContainerItem::paint(QPainter *painter,
     // Body
     const QRectF body(0, 0, size.width(), size.height());
     painter->setBrush(prefs->contBodyColor);
-    painter->setPen(Qt::NoPen);
+    painter->setPen(QPen(prefs->contBodyColor.darker(80)));
     painter->drawRoundedRect(body, 6, 6);
 
     // Header band

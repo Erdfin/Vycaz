@@ -12,6 +12,7 @@ GraphicsView::GraphicsView(QWidget* parent)
     setAcceptDrops(true);
     setDragMode(NoDrag);
     setRenderHint(QPainter::Antialiasing);
+    setRenderHint(QPainter::TextAntialiasing);
 
 
     setTransformationAnchor(AnchorUnderMouse);

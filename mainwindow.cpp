@@ -250,7 +250,7 @@ void MainWindow::loadThemes(const QString& filePath)
     }
 }
 
-void exportSceneToSvg(QGraphicsScene* scene, const QString& filePath)
+void exportSceneToSvg(QGraphicsScene* scene, const QString& filePath, Prefs prefs)
 {
     if (scene == nullptr) return;
 
@@ -270,10 +270,12 @@ void exportSceneToSvg(QGraphicsScene* scene, const QString& filePath)
     generator.setFileName(filePath);
     generator.setSize(bounds.size().toSize());
     generator.setViewBox(QRectF(0, 0, bounds.width(), bounds.height()));
+    generator.setResolution(96);
 
     QPainter painter;
     painter.begin(&generator);
     painter.setRenderHint(QPainter::Antialiasing);
+    painter.setFont(prefs.font);
 
     QRectF target(0, 0, bounds.width(), bounds.height());
     scene->render(&painter, target, bounds);
@@ -685,7 +687,7 @@ MainWindow::MainWindow(QWidget* parent)
         if (!path.endsWith(".svg", Qt::CaseInsensitive))
             path += ".svg";
         if (!path.isEmpty())
-            exportSceneToSvg(this->view->scene(), path);
+            exportSceneToSvg(this->view->scene(), path, preferences);
     });
 
     newAct->setShortcut(QKeySequence::New);
@@ -910,6 +912,9 @@ QGraphicsItem* MainWindow::spawnMachine(const QString& machineId, QPointF sceneP
         connect(item, &MachineItem::machineConfigureRequested,
                 this, &MainWindow::showMachineConfigDialog);
 
+        connect(item, &MachineItem::createDuplicate,
+                this, &MainWindow::spawnMachineItemDuplicate);
+
         item->instanceId = QUuid::createUuid().toString(QUuid::WithoutBraces);
         item->setPos(fixPosition(scenePos));
         scene->addItem(item);
@@ -920,6 +925,21 @@ QGraphicsItem* MainWindow::spawnMachine(const QString& machineId, QPointF sceneP
         scene->addItem(item);
         return item;
     }
+}
+
+MachineItem* MainWindow::spawnMachineItemDuplicate(MachineItem* temp) {
+    auto* item = new MachineItem(&preferences, *temp);
+
+    connect(item, &MachineItem::machineConfigureRequested,
+            this, &MainWindow::showMachineConfigDialog);
+
+    connect(item, &MachineItem::createDuplicate,
+            this, &MainWindow::spawnMachineItemDuplicate);
+
+    item->instanceId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    item->setPos(fixPosition(getSceneMousePos()));
+    scene->addItem(item);
+    return item;
 }
 
 void MainWindow::showMachineConfigDialog(MachineItem *item) {

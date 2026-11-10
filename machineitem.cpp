@@ -24,12 +24,34 @@ MachineItem::MachineItem(const Prefs *prefs, const MachineDefinition& def)
     setAcceptHoverEvents(true);
     setFlags(ItemIsMovable | ItemIsSelectable | ItemSendsScenePositionChanges);
 
-    if (!def.iconPath.isEmpty())
-        icon.load(def.iconPath);
+    if (!definition.iconPath.isEmpty())
+        icon.load(definition.iconPath);
 
-    size = QSize(snap(def.width, prefs->gridSize), snap(def.height, prefs->gridSize));
+    size = QSize(snap(definition.width, prefs->gridSize), snap(definition.height, prefs->gridSize));
 
     createPorts();
+    updateOrientation();
+}
+
+MachineItem::MachineItem(const Prefs *prefs, const MachineItem& temp)
+    : definition(temp.definition)
+    , prefs(prefs)
+    , label(temp.getLabel())
+{
+    setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+    setAcceptHoverEvents(true);
+    setFlags(ItemIsMovable | ItemIsSelectable | ItemSendsScenePositionChanges);
+
+    if (!definition.iconPath.isEmpty())
+        icon.load(definition.iconPath);
+
+    QSizeF temp_size = temp.getSize();
+    size = QSize(snap(temp_size.width(), prefs->gridSize), snap(temp_size.height(), prefs->gridSize));
+
+    for (const PortItem* pi : std::as_const(temp.portMap))
+    {
+        addPort(*pi->getDefinition(), "");
+    }
     updateOrientation();
 }
 
@@ -336,6 +358,7 @@ void MachineItem::setSize(QSizeF new_size)
 void MachineItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     QMenu menu;
+    QAction* duplicate = menu.addAction("Duplicate");
     QAction* flipH     = menu.addAction("Flip Horizontally");
     QAction* flipV     = menu.addAction("Flip Vertically");
     QAction* rotate    = menu.addAction("Rotate");
@@ -356,6 +379,8 @@ void MachineItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         flipMachineV();
     } else if (selected == rotate) {
         rotateMachine();
+    } else if (selected == duplicate) {
+        emit createDuplicate(this);
     }
 }
 

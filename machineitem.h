@@ -17,6 +17,7 @@ class MachineItem : public QGraphicsObject
 
 public:
     explicit MachineItem(const Prefs *prefs, const MachineDefinition& def);
+    explicit MachineItem(const Prefs *prefs, const MachineItem& temp);
 
     enum { Type = QGraphicsObject::UserType + 1 };
     int type() const override { return Type; }
@@ -78,6 +79,7 @@ private:
 
 signals:
     void machineConfigureRequested(MachineItem* self);
+    void createDuplicate(MachineItem* self);
 
 protected:
     QGraphicsTextItem* textEditor = nullptr;

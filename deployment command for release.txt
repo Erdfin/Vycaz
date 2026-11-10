@@ -1,0 +1,1 @@
+C:\Qt\6.10.2\llvm-mingw_64\bin\windeployqt6.exe --qtpaths C:\Qt\6.10.2\llvm-mingw_64\bin\qtpaths6.exe --no-translations --no-opengl-sw Vycaz.exe

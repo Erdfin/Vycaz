@@ -31,6 +31,11 @@ private:
     qreal arrowSpacing;
     qreal length = 0;
 
+    QPointF *sPos = nullptr;
+    QPointF *dPos = nullptr;
+
+    QPainterPath connPath;
+
 protected:
     void paint(QPainter* painter,
                const QStyleOptionGraphicsItem* option,
