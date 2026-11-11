@@ -53,8 +53,10 @@ file(GLOB_RECURSE MICROTEX_SOURCES
     "${MICROTEX_SRC}/res/*.cpp"
     "${MICROTEX_SRC}/latex.cpp"
     "${MICROTEX_SRC}/render.cpp"
-    "${MICROTEX_SRC}/platform/qt/graphic_qt.cpp"
 )
+# Patched copy of upstream's platform/qt/graphic_qt.cpp: upstream draws 1pt
+# fonts under a large painter scale, which Qt cannot rasterise.
+list(APPEND MICROTEX_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/microtex/graphic_qt.cpp")
 
 add_library(microtex STATIC ${MICROTEX_SOURCES})
 add_library(MicroTeX::microtex ALIAS microtex)
