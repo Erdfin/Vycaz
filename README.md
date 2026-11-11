@@ -1,7 +1,7 @@
 # About this branch
-This branch was made by an LLM to see how using MicroTeX on a project like this would look like
+This branch was made by an LLM to see how using [MicroTeX](https://github.com/NanoMichael/MicroTex) on a project like this would look like
 
-# Screenchots
+# Screenshots
 
 ## General
 ![docs](img/1.png)
